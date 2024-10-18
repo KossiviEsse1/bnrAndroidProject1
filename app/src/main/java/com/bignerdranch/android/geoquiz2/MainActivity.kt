@@ -2,12 +2,12 @@ package com.bignerdranch.android.geoquiz2
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.Toast
 import com.bignerdranch.android.geoquiz2.databinding.ActivityMainBinding
-import com.google.android.material.snackbar.BaseTransientBottomBar
-import com.google.android.material.snackbar.Snackbar
+
+private const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,22 +21,42 @@ class MainActivity : AppCompatActivity() {
         Question(R.string.question_americas, true),
         Question(R.string.question_asia, true))
 
+    private val answerCheck = mutableListOf<Boolean>(false, false, false, false, false, false)
+    private val answers = mutableListOf<Boolean>(false, false, false, false, false, false)
+
     private var currentIndex = 0
+    private var count = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate(Bundle?) called")
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         binding.trueButton.setOnClickListener { view: View ->
-            checkAnswer(true)
+            if (!answerCheck[currentIndex]) {
+                checkAnswer(true)
+                answerCheck[currentIndex] = true;
+                answers[currentIndex] = true;
+                count++
+            }
+            if (count == questionBank.size) {
+                gradeTest(questionBank, answers)
+            }
         }
-
         binding.falseButton.setOnClickListener { view: View ->
-            checkAnswer(false)
+            if (!answerCheck[currentIndex]) {
+                checkAnswer(false)
+                answerCheck[currentIndex] = true;
+                count++
+            }
+            if (count == questionBank.size) {
+                gradeTest(questionBank, answers)
+            }
         }
 
         updateQuestion()
+
 
         binding.nextButton.setOnClickListener { view: View ->
             currentIndex = (currentIndex + 1) % questionBank.size
@@ -45,7 +65,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.prevButton.setOnClickListener { view: View ->
             if (currentIndex - 1 >= 0) {
-                currentIndex = currentIndex - 1
+                currentIndex -= 1
             } else {
                 currentIndex = questionBank.size - 1
             }
@@ -57,6 +77,28 @@ class MainActivity : AppCompatActivity() {
             updateQuestion()
         }
     }
+
+    private fun gradeTest(questions: List<Question>, answers: List<Boolean>) {
+        var correctAnswers = 0;
+        questions.forEachIndexed{index, question ->
+            if (question.answer == answers[index]) {
+                correctAnswers++
+            }
+        }
+        val percentage: Double = (correctAnswers.toDouble()/questions.size.toDouble()) * 100.0
+        Toast.makeText(this, "Percentage: ${Math.round(percentage)}%", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onStart() { super.onStart()
+        Log.d(TAG, "onStart() called") }
+    override fun onResume() { super.onResume()
+        Log.d(TAG, "onResume() called") }
+    override fun onPause() { super.onPause()
+        Log.d(TAG, "onPause() called") }
+    override fun onStop() { super.onStop()
+        Log.d(TAG, "onStop() called") }
+    override fun onDestroy() { super.onDestroy()
+        Log.d(TAG, "onDestroy() called") }
 
     private fun updateQuestion() {
         val questionTextResId = questionBank[currentIndex].textResId
