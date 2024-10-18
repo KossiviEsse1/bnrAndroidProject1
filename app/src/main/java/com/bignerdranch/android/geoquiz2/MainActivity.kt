@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import com.bignerdranch.android.geoquiz2.databinding.ActivityMainBinding
 
 private const val TAG = "MainActivity"
@@ -13,19 +14,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    private val questionBank = listOf<Question>(
-        Question(R.string.question_australia, true),
-        Question(R.string.question_oceans, true),
-        Question(R.string.question_mideast, false),
-        Question(R.string.question_africa, false),
-        Question(R.string.question_americas, true),
-        Question(R.string.question_asia, true))
-
-    private val answerCheck = mutableListOf<Boolean>(false, false, false, false, false, false)
-    private val answers = mutableListOf<Boolean>(false, false, false, false, false, false)
-
-    private var currentIndex = 0
-    private var count = 0
+    private val quizViewModel: QuizViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,59 +22,48 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        Log.d(TAG, "Got a QuizViewModel: $quizViewModel")
+
         binding.trueButton.setOnClickListener { view: View ->
-            if (!answerCheck[currentIndex]) {
-                checkAnswer(true)
-                answerCheck[currentIndex] = true;
-                answers[currentIndex] = true;
-                count++
-            }
-            if (count == questionBank.size) {
-                gradeTest(questionBank, answers)
-            }
+            processButtonClick(true)
         }
         binding.falseButton.setOnClickListener { view: View ->
-            if (!answerCheck[currentIndex]) {
-                checkAnswer(false)
-                answerCheck[currentIndex] = true;
-                count++
-            }
-            if (count == questionBank.size) {
-                gradeTest(questionBank, answers)
-            }
+            processButtonClick(false)
         }
 
         updateQuestion()
 
 
         binding.nextButton.setOnClickListener { view: View ->
-            currentIndex = (currentIndex + 1) % questionBank.size
+            quizViewModel.moveToNext()
             updateQuestion()
         }
 
         binding.prevButton.setOnClickListener { view: View ->
-            if (currentIndex - 1 >= 0) {
-                currentIndex -= 1
-            } else {
-                currentIndex = questionBank.size - 1
-            }
+            quizViewModel.moveToPrev()
             updateQuestion()
         }
 
         binding.questionTextView.setOnClickListener { view: View ->
-            currentIndex = (currentIndex + 1) % questionBank.size
+            quizViewModel.moveToNext()
             updateQuestion()
         }
     }
 
-    private fun gradeTest(questions: List<Question>, answers: List<Boolean>) {
-        var correctAnswers = 0;
-        questions.forEachIndexed{index, question ->
-            if (question.answer == answers[index]) {
-                correctAnswers++
-            }
+    private fun processButtonClick(value: Boolean) {
+        if (!quizViewModel.isAnswered()) {
+            checkAnswer(value)
+            quizViewModel.answer()
+            quizViewModel.updateAnswer(value)
+            quizViewModel.incrementCount()
         }
-        val percentage: Double = (correctAnswers.toDouble()/questions.size.toDouble()) * 100.0
+        if (quizViewModel.testCompleted()) {
+            gradeTest()
+        }
+    }
+
+    private fun gradeTest() {
+        val percentage: Double = quizViewModel.getTestPercentage()
         Toast.makeText(this, "Percentage: ${Math.round(percentage)}%", Toast.LENGTH_LONG).show()
     }
 
@@ -101,12 +79,12 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onDestroy() called") }
 
     private fun updateQuestion() {
-        val questionTextResId = questionBank[currentIndex].textResId
+        val questionTextResId = quizViewModel.currentQuestionText
         binding.questionTextView.setText(questionTextResId)
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
-        if (userAnswer == questionBank[currentIndex].answer) {
+        if (userAnswer == quizViewModel.currentQuestionAnswer) {
             Toast.makeText(this, R.string.correct_toast, Toast.LENGTH_SHORT).show()
         } else {
             Toast.makeText(this, R.string.incorrect_toast, Toast.LENGTH_SHORT).show()
