@@ -19,6 +19,8 @@ class QuizViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
 
     var isCheater = mutableListOf<Boolean>(false, false, false, false, false, false)
 
+    var cheatTokens = 3
+
     private var answerCheck = mutableListOf<Boolean>(false, false, false, false, false, false)
 
     private var answers = mutableListOf<Boolean>(false, false, false, false, false, false)

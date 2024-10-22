@@ -2,6 +2,9 @@ package com.bignerdranch.android.geoquiz2
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.RenderEffect
+import android.graphics.Shader
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -9,6 +12,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import com.bignerdranch.android.geoquiz2.databinding.ActivityMainBinding
 
 private const val TAG = "MainActivity"
@@ -46,10 +50,21 @@ class MainActivity : AppCompatActivity() {
 
         updateQuestion()
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            blurCheatButton()
+        }
+        var cheatTokens = "${quizViewModel.cheatTokens} cheat tokens left"
+        binding.cheatTokens.text = cheatTokens
+
         binding.cheatButton.setOnClickListener {
-            val answerIsTrue = quizViewModel.currentQuestionAnswer
-            val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
-            cheatLauncher.launch(intent)
+            if(quizViewModel.cheatTokens > 0) {
+                val answerIsTrue = quizViewModel.currentQuestionAnswer
+                val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
+                cheatLauncher.launch(intent)
+                quizViewModel.cheatTokens = quizViewModel.cheatTokens - 1
+                cheatTokens = "${quizViewModel.cheatTokens} cheat tokens left"
+                binding.cheatTokens.text = cheatTokens
+            }
         }
 
         binding.nextButton.setOnClickListener { view: View ->
@@ -108,5 +123,15 @@ class MainActivity : AppCompatActivity() {
             else -> R.string.incorrect_toast
         }
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun blurCheatButton() {
+        val effect = RenderEffect.createBlurEffect(
+            10.0f,
+            10.0f,
+            Shader.TileMode.CLAMP
+        )
+        binding.cheatButton.setRenderEffect(effect)
     }
 }

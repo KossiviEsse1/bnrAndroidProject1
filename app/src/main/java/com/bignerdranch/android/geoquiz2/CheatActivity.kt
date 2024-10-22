@@ -3,6 +3,7 @@ package com.bignerdranch.android.geoquiz2
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
@@ -35,6 +36,8 @@ class CheatActivity : AppCompatActivity() {
             cheatViewModel.answerText = answerText
             setAnswerShownResult(true)
         }
+        val apiLevel = Build.VERSION.SDK_INT
+        binding.apiLevel.setText("API Level $apiLevel")
 
         if (cheatViewModel.answerWasClicked) {
             setAnswerShownResult(true)
