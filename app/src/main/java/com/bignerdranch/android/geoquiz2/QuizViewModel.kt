@@ -5,8 +5,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 
 const val CURRENT_INDEX_KEY = "CURRENT_INDEX_KEY"
-const val ANSWER_CHECK_STATE = "ANSWER_CHECK_STATE"
-const val ANSWERS = "ANSWERS"
 const val IS_CHEATER_KEY = "IS_CHEATER_KEY"
 
 class QuizViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel() {
@@ -19,17 +17,11 @@ class QuizViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
         Question(R.string.question_americas, true),
         Question(R.string.question_asia, true))
 
-    var isCheater: Boolean
-        get() = savedStateHandle.get(IS_CHEATER_KEY)?:false
-        set(value) = savedStateHandle.set(IS_CHEATER_KEY, value)
+    var isCheater = mutableListOf<Boolean>(false, false, false, false, false, false)
 
-    private var answerCheck: MutableList<Boolean>
-        get() = savedStateHandle[ANSWER_CHECK_STATE] ?: mutableListOf<Boolean>(false, false, false, false, false, false)
-        set(value) = savedStateHandle.set(ANSWER_CHECK_STATE, value)
+    private var answerCheck = mutableListOf<Boolean>(false, false, false, false, false, false)
 
-    private var answers: MutableList<Boolean>
-        get() = savedStateHandle[ANSWERS] ?: mutableListOf<Boolean>(false, false, false, false, false, false)
-        set(value) = savedStateHandle.set(ANSWERS, value)
+    private var answers = mutableListOf<Boolean>(false, false, false, false, false, false)
 
     private var currentIndex: Int
         get() = savedStateHandle[CURRENT_INDEX_KEY] ?: 0
@@ -42,6 +34,13 @@ class QuizViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
     val currentQuestionText: Int
         get() = questionBank[currentIndex].textResId
 
+    fun setIsCurrentCheater(value: Boolean) {
+        isCheater[currentIndex] = value
+    }
+
+    fun getIsCurrentCheater(): Boolean {
+        return isCheater[currentIndex]
+    }
     fun isAnswered(): Boolean {
         return answerCheck[currentIndex]
     }
