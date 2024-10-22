@@ -4,10 +4,10 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 
-private const val TAG = "QuizViewModel"
 const val CURRENT_INDEX_KEY = "CURRENT_INDEX_KEY"
 const val ANSWER_CHECK_STATE = "ANSWER_CHECK_STATE"
 const val ANSWERS = "ANSWERS"
+const val IS_CHEATER_KEY = "IS_CHEATER_KEY"
 
 class QuizViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel() {
 
@@ -18,6 +18,10 @@ class QuizViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
         Question(R.string.question_africa, false),
         Question(R.string.question_americas, true),
         Question(R.string.question_asia, true))
+
+    var isCheater: Boolean
+        get() = savedStateHandle.get(IS_CHEATER_KEY)?:false
+        set(value) = savedStateHandle.set(IS_CHEATER_KEY, value)
 
     private var answerCheck: MutableList<Boolean>
         get() = savedStateHandle[ANSWER_CHECK_STATE] ?: mutableListOf<Boolean>(false, false, false, false, false, false)
